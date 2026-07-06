@@ -1,142 +1,103 @@
-def get_grade_point(score):
-    """Convert a numeric score (0-100) to a letter grade and grade point
-    using selection control statements."""
-    if score < 0 or score > 100:
-        return None, None
-    elif score >= 70:
-        return "A", 5
-    elif score >= 60:
-        return "B", 4
-    elif score >= 50:
-        return "C", 3
-    elif score >= 45:
-        return "D", 2
-    elif score >= 40:
-        return "E", 1
-    else:
-        return "F", 0
+import tkinter as tk
+from tkinter import messagebox
 
+class Calculator:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Mathematical Calculator")
+        self.root.geometry("350x450")
+        self.root.resizable(False, False)
 
-def get_positive_number(prompt, is_integer=False):
-    """Repeatedly ask the user for a valid positive number."""
-    while True:
-        value = input(prompt).strip()
+        # Display area
+        self.display_var = tk.StringVar()
+        self.display_var.set("0")
+        self.entry = tk.Entry(root, textvariable=self.display_var, font=("Arial", 24),
+                              justify="right", bd=10, relief=tk.RIDGE)
+        self.entry.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=10, pady=10)
+
+        # Expression to evaluate
+        self.expression = ""
+
+        # Button layout
+        buttons = [
+            ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('/', 1, 3),
+            ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), ('*', 2, 3),
+            ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('-', 3, 3),
+            ('0', 4, 0), ('.', 4, 1), ('^', 4, 2), ('+', 4, 3),
+            ('%', 5, 0), ('\\', 5, 1), ('C', 5, 2), ('=', 5, 3),
+            ('OFF', 6, 0)
+        ]
+
+        for (text, row, col) in buttons:
+            if text == '=':
+                btn = tk.Button(root, text=text, font=("Arial", 18), command=self.evaluate,
+                                bg="#4CAF50", fg="white", height=2, width=5)
+            elif text == 'C':
+                btn = tk.Button(root, text=text, font=("Arial", 18), command=self.clear,
+                                bg="#f44336", fg="white", height=2, width=5)
+            elif text == 'OFF':
+                btn = tk.Button(root, text=text, font=("Arial", 18), command=self.quit_app,
+                                bg="#555", fg="white", height=2, width=5)
+            else:
+                btn = tk.Button(root, text=text, font=("Arial", 18),
+                                command=lambda t=text: self.append_to_expression(t),
+                                height=2, width=5)
+            btn.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+
+        # Make grid expandable
+        for i in range(7):
+            root.grid_rowconfigure(i, weight=1)
+        for j in range(4):
+            root.grid_columnconfigure(j, weight=1)
+
+    def append_to_expression(self, value):
+        """Append the clicked button's value to the expression."""
+        # Replace display "0" with the new value if it's the start
+        if self.display_var.get() == "0" and value not in '/*-+^%\\':
+            self.expression = ""
+        # Avoid consecutive operators (except for minus sign)
+        if self.expression and self.expression[-1] in '+-*/^%\\' and value in '+-*/^%\\':
+            if value == '-' and self.expression[-1] not in '+-*/^%\\':
+                pass  # allow negative number
+            else:
+                self.expression = self.expression[:-1] + value
+                self.update_display()
+                return
+        self.expression += value
+        self.update_display()
+
+    def update_display(self):
+        """Update the entry widget with current expression."""
+        self.display_var.set(self.expression)
+
+    def clear(self):
+        """Clear the expression."""
+        self.expression = ""
+        self.display_var.set("0")
+
+    def evaluate(self):
+        """Evaluate the current expression and show result."""
         try:
-            number = int(value) if is_integer else float(value)
-            if number < 0:
-                print("  Please enter a positive value.")
-                continue
-            return number
-        except ValueError:
-            print("  Invalid input. Please enter a number.")
+            # Replace displayed symbols with Python operators
+            expr = self.expression.replace('^', '**').replace('\\', '//')
+            # Evaluate safely
+            result = eval(expr)
+            # Display result
+            self.display_var.set(str(result))
+            # Keep result as new expression for further operations
+            self.expression = str(result)
+        except ZeroDivisionError:
+            messagebox.showerror("Error", "Division by zero is not allowed.")
+            self.clear()
+        except Exception:
+            messagebox.showerror("Error", "Invalid expression.")
+            self.clear()
 
-
-def add_course(courses):
-    print("\n--- Add a Course ---")
-    name = input("Course code/title (e.g. COS202): ").strip().upper()
-    units = get_positive_number("Course units (e.g. 3): ", is_integer=True)
-    score = get_positive_number("Score obtained (0-100): ")
-
-    grade, point = get_grade_point(score)
-    if grade is None:
-        print("  Score must be between 0 and 100. Course not added.")
-        return
-
-    courses.append({
-        "name": name,
-        "units": units,
-        "score": score,
-        "grade": grade,
-        "point": point,
-    })
-    print(f"  Added: {name} | {units} unit(s) | Score {score} | Grade {grade} ({point} points)")
-
-
-def view_courses(courses):
-    print("\n--- Courses Entered ---")
-    if not courses:
-        print("  No courses added yet.")
-        return
-
-    print(f"{'Course':<12}{'Units':<8}{'Score':<8}{'Grade':<8}{'GP':<6}")
-    print("-" * 42)
-    for c in courses:
-        print(f"{c['name']:<12}{c['units']:<8}{c['score']:<8}{c['grade']:<8}{c['point']:<6}")
-
-
-def calculate_cgpa(courses):
-    print("\n--- CGPA Result ---")
-    if not courses:
-        print("  No courses added yet. Add courses first.")
-        return
-
-    total_units = 0
-    total_quality_points = 0
-
-    for c in courses:
-        total_units += c["units"]
-        total_quality_points += c["units"] * c["point"]
-
-    if total_units == 0:
-        print("  Total units cannot be zero.")
-        return
-
-    cgpa = total_quality_points / total_units
-    print(f"  Total Units: {total_units}")
-    print(f"  Total Quality Points: {total_quality_points}")
-    print(f"  CGPA: {cgpa:.2f}")
-
-    # Classification using selection control statements
-    if cgpa >= 4.50:
-        classification = "First Class"
-    elif cgpa >= 3.50:
-        classification = "Second Class Upper"
-    elif cgpa >= 2.40:
-        classification = "Second Class Lower"
-    elif cgpa >= 1.50:
-        classification = "Third Class"
-    elif cgpa >= 1.00:
-        classification = "Pass"
-    else:
-        classification = "Fail"
-
-    print(f"  Classification: {classification}")
-
-
-def show_menu():
-    print("\n============================")
-    print(" PERSONAL POCKET CGPA CALC  ")
-    print("============================")
-    print("1. Add a course")
-    print("2. View entered courses")
-    print("3. Calculate CGPA")
-    print("4. Clear all courses")
-    print("5. Exit")
-
-
-def main():
-    courses = []
-    print("Welcome to your Personal Pocket CGPA Calculator (PPC)!")
-
-    while True:
-        show_menu()
-        choice = input("Select an option (1-5): ").strip()
-
-        if choice == "1":
-            add_course(courses)
-        elif choice == "2":
-            view_courses(courses)
-        elif choice == "3":
-            calculate_cgpa(courses)
-        elif choice == "4":
-            courses.clear()
-            print("  All courses cleared.")
-        elif choice == "5":
-            print("Goodbye! Keep checking your CGPA, no need for AVERS.")
-            break
-        else:
-            print("  Invalid choice. Please select between 1 and 5.")
-
+    def quit_app(self):
+        """Exit the application."""
+        self.root.quit()
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = Calculator(root)
+    root.mainloop()
