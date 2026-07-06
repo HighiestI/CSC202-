@@ -1,6 +1,12 @@
+THIS PROJECT IS DONE BY 
+OLUMIDE IYANUOLUWA A STUDET OF SOFTWARE ENGINEERING DEPARTMENT 
+MATRIC NUMBER 241206015 
+FACULTY OF COMPUTING 
+
 # CSC202-
 for project 
 
+This are the screenshots of the assignment that and how they ran 
 ## Screenshots
 
 ![Screenshot 1](https://ibb.co/99wVrS97)
