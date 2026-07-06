@@ -1,2 +1,144 @@
 # CSC202-
 for project 
+def get_grade_point(score):
+    """Convert a numeric score (0-100) to a letter grade and grade point
+    using selection control statements."""
+    if score < 0 or score > 100:
+        return None, None
+    elif score >= 70:
+        return "A", 5
+    elif score >= 60:
+        return "B", 4
+    elif score >= 50:
+        return "C", 3
+    elif score >= 45:
+        return "D", 2
+    elif score >= 40:
+        return "E", 1
+    else:
+        return "F", 0
+
+
+def get_positive_number(prompt, is_integer=False):
+    """Repeatedly ask the user for a valid positive number."""
+    while True:
+        value = input(prompt).strip()
+        try:
+            number = int(value) if is_integer else float(value)
+            if number < 0:
+                print("  Please enter a positive value.")
+                continue
+            return number
+        except ValueError:
+            print("  Invalid input. Please enter a number.")
+
+
+def add_course(courses):
+    print("\n--- Add a Course ---")
+    name = input("Course code/title (e.g. COS202): ").strip().upper()
+    units = get_positive_number("Course units (e.g. 3): ", is_integer=True)
+    score = get_positive_number("Score obtained (0-100): ")
+
+    grade, point = get_grade_point(score)
+    if grade is None:
+        print("  Score must be between 0 and 100. Course not added.")
+        return
+
+    courses.append({
+        "name": name,
+        "units": units,
+        "score": score,
+        "grade": grade,
+        "point": point,
+    })
+    print(f"  Added: {name} | {units} unit(s) | Score {score} | Grade {grade} ({point} points)")
+
+
+def view_courses(courses):
+    print("\n--- Courses Entered ---")
+    if not courses:
+        print("  No courses added yet.")
+        return
+
+    print(f"{'Course':<12}{'Units':<8}{'Score':<8}{'Grade':<8}{'GP':<6}")
+    print("-" * 42)
+    for c in courses:
+        print(f"{c['name']:<12}{c['units']:<8}{c['score']:<8}{c['grade']:<8}{c['point']:<6}")
+
+
+def calculate_cgpa(courses):
+    print("\n--- CGPA Result ---")
+    if not courses:
+        print("  No courses added yet. Add courses first.")
+        return
+
+    total_units = 0
+    total_quality_points = 0
+
+    for c in courses:
+        total_units += c["units"]
+        total_quality_points += c["units"] * c["point"]
+
+    if total_units == 0:
+        print("  Total units cannot be zero.")
+        return
+
+    cgpa = total_quality_points / total_units
+    print(f"  Total Units: {total_units}")
+    print(f"  Total Quality Points: {total_quality_points}")
+    print(f"  CGPA: {cgpa:.2f}")
+
+    # Classification using selection control statements
+    if cgpa >= 4.50:
+        classification = "First Class"
+    elif cgpa >= 3.50:
+        classification = "Second Class Upper"
+    elif cgpa >= 2.40:
+        classification = "Second Class Lower"
+    elif cgpa >= 1.50:
+        classification = "Third Class"
+    elif cgpa >= 1.00:
+        classification = "Pass"
+    else:
+        classification = "Fail"
+
+    print(f"  Classification: {classification}")
+
+
+def show_menu():
+    print("\n============================")
+    print(" PERSONAL POCKET CGPA CALC  ")
+    print("============================")
+    print("1. Add a course")
+    print("2. View entered courses")
+    print("3. Calculate CGPA")
+    print("4. Clear all courses")
+    print("5. Exit")
+
+
+def main():
+    courses = []
+    print("Welcome to your Personal Pocket CGPA Calculator (PPC)!")
+
+    while True:
+        show_menu()
+        choice = input("Select an option (1-5): ").strip()
+
+        if choice == "1":
+            add_course(courses)
+        elif choice == "2":
+            view_courses(courses)
+        elif choice == "3":
+            calculate_cgpa(courses)
+        elif choice == "4":
+            courses.clear()
+            print("  All courses cleared.")
+        elif choice == "5":
+            print("Goodbye! Keep checking your CGPA, no need for AVERS.")
+            break
+        else:
+            print("  Invalid choice. Please select between 1 and 5.")
+
+
+if __name__ == "__main__":
+    main()
